@@ -23,7 +23,7 @@ app.use(helmet({
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? ['https://your-production-domain.com']
-    : ['http://localhost:5000', 'http://127.0.0.1:5000'],
+    : ['http://localhost:5000', 'http://127.0.0.1:5000', 'http://0.0.0.0:5000', `https://${process.env.REPLIT_DEV_DOMAIN}`].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']

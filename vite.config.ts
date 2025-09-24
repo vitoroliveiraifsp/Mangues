@@ -69,6 +69,8 @@ export default defineConfig({
     port: 5000,
     host: '0.0.0.0',
     strictPort: true,
+    // Allow all hosts for Replit proxy environment
+    allowedHosts: true,
     // Configuração de proxy para Docker
     proxy: {
       '/api': {
