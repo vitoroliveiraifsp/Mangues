@@ -24,6 +24,9 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// Temporary in-memory users storage (for development without database)
+const temporaryUsers = new Map();
+
 // POST /api/auth/register - Criar nova conta
 router.post('/register', async (req, res) => {
   try {
@@ -42,57 +45,94 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Verificar se email já existe
-    const existingUser = await query(
-      'SELECT id FROM usuarios WHERE email = $1',
-      [email.toLowerCase()]
-    );
+    try {
+      // Tentar usar banco de dados primeiro
+      const existingUser = await query(
+        'SELECT id FROM usuarios WHERE email = $1',
+        [email.toLowerCase()]
+      );
 
-    if (existingUser.rows.length > 0) {
-      return res.status(400).json({ 
-        error: 'Este email já está em uso' 
+      if (existingUser.rows.length > 0) {
+        return res.status(400).json({ 
+          error: 'Este email já está em uso' 
+        });
+      }
+
+      // Hash da senha
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Criar usuário
+      const result = await query(`
+        INSERT INTO usuarios (nome, email, password_hash)
+        VALUES ($1, $2, $3)
+        RETURNING id, nome, email, created_at
+      `, [nome.trim(), email.toLowerCase(), hashedPassword]);
+
+      const user = result.rows[0];
+
+      // Gerar token JWT
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.status(201).json({
+        user: {
+          id: user.id,
+          nome: user.nome,
+          email: user.email,
+          created_at: user.created_at
+        },
+        token
+      });
+    } catch (dbError) {
+      // Fallback para armazenamento temporário se banco não disponível
+      console.log('Database not available, using temporary storage');
+      
+      // Verificar se email já existe no storage temporário
+      if (temporaryUsers.has(email.toLowerCase())) {
+        return res.status(400).json({ 
+          error: 'Este email já está em uso' 
+        });
+      }
+
+      // Hash da senha
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Criar usuário temporário
+      const userId = Date.now().toString();
+      const user = {
+        id: userId,
+        nome: nome.trim(),
+        email: email.toLowerCase(),
+        password_hash: hashedPassword,
+        created_at: new Date().toISOString()
+      };
+
+      temporaryUsers.set(email.toLowerCase(), user);
+
+      // Gerar token JWT
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.status(201).json({
+        user: {
+          id: user.id,
+          nome: user.nome,
+          email: user.email,
+          created_at: user.created_at
+        },
+        token
       });
     }
-
-    // Hash da senha
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Criar usuário
-    const result = await query(`
-      INSERT INTO usuarios (nome, email, password_hash)
-      VALUES ($1, $2, $3)
-      RETURNING id, nome, email, created_at
-    `, [nome.trim(), email.toLowerCase(), hashedPassword]);
-
-    const user = result.rows[0];
-
-    // Gerar token JWT
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.status(201).json({
-      user: {
-        id: user.id,
-        nome: user.nome,
-        email: user.email,
-        created_at: user.created_at
-      },
-      token
-    });
   } catch (error) {
     console.error('Erro no registro:', error);
-    
-    // Se a tabela 'usuarios' não existir, retornar erro específico
-    if (error.message && error.message.includes('relation "usuarios" does not exist')) {
-      return res.status(500).json({ 
-        error: 'Sistema de usuários não configurado. Execute o script de inicialização do banco.' 
-      });
-    }
-    
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
@@ -108,54 +148,83 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Buscar usuário
-    const result = await query(
-      'SELECT id, nome, email, password_hash, created_at FROM usuarios WHERE email = $1',
-      [email.toLowerCase()]
-    );
+    try {
+      // Tentar usar banco de dados primeiro
+      const result = await query(
+        'SELECT id, nome, email, password_hash, created_at FROM usuarios WHERE email = $1',
+        [email.toLowerCase()]
+      );
 
-    if (result.rows.length === 0) {
-      return res.status(401).json({ 
-        error: 'Email ou senha incorretos' 
+      if (result.rows.length === 0) {
+        return res.status(401).json({ 
+          error: 'Email ou senha incorretos' 
+        });
+      }
+
+      const user = result.rows[0];
+
+      // Verificar senha
+      const passwordMatch = await bcrypt.compare(password, user.password_hash);
+      if (!passwordMatch) {
+        return res.status(401).json({ 
+          error: 'Email ou senha incorretos' 
+        });
+      }
+
+      // Gerar token JWT
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.json({
+        user: {
+          id: user.id,
+          nome: user.nome,
+          email: user.email,
+          created_at: user.created_at
+        },
+        token
+      });
+    } catch (dbError) {
+      // Fallback para armazenamento temporário se banco não disponível
+      console.log('Database not available, using temporary storage');
+      
+      const user = temporaryUsers.get(email.toLowerCase());
+      if (!user) {
+        return res.status(401).json({ 
+          error: 'Email ou senha incorretos' 
+        });
+      }
+
+      // Verificar senha
+      const passwordMatch = await bcrypt.compare(password, user.password_hash);
+      if (!passwordMatch) {
+        return res.status(401).json({ 
+          error: 'Email ou senha incorretos' 
+        });
+      }
+
+      // Gerar token JWT
+      const token = jwt.sign(
+        { userId: user.id, email: user.email },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      res.json({
+        user: {
+          id: user.id,
+          nome: user.nome,
+          email: user.email,
+          created_at: user.created_at
+        },
+        token
       });
     }
-
-    const user = result.rows[0];
-
-    // Verificar senha
-    const passwordMatch = await bcrypt.compare(password, user.password_hash);
-    if (!passwordMatch) {
-      return res.status(401).json({ 
-        error: 'Email ou senha incorretos' 
-      });
-    }
-
-    // Gerar token JWT
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      user: {
-        id: user.id,
-        nome: user.nome,
-        email: user.email,
-        created_at: user.created_at
-      },
-      token
-    });
   } catch (error) {
     console.error('Erro no login:', error);
-    
-    // Se a tabela 'usuarios' não existir, retornar erro específico
-    if (error.message && error.message.includes('relation "usuarios" does not exist')) {
-      return res.status(500).json({ 
-        error: 'Sistema de usuários não configurado. Execute o script de inicialização do banco.' 
-      });
-    }
-    
     res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });

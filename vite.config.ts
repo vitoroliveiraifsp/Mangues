@@ -69,15 +69,17 @@ export default defineConfig({
     port: 5000,
     host: '0.0.0.0',
     strictPort: true,
-    // Allow all hosts for Replit proxy environment
-    allowedHosts: true,
-    // Configuração de proxy para Docker
+    // Configuração de proxy para API backend
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
       }
+    },
+    // Allow access from Replit domains
+    hmr: {
+      clientPort: 5000
     }
   },
   // Configuração para produção

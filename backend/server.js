@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 import { initDatabase, healthCheck } from './src/config/database.js';
+import multiplayerService from './src/services/multiplayerService.js';
 
 const app = express();
 const server = createServer(app);
@@ -66,6 +67,20 @@ app.use('/api', conexoesRoutes);
 app.use('/api', quizRoutes);
 app.use('/api', pontuacoesRoutes);
 app.use('/api/auth', authRoutes);
+
+// Multiplayer API routes
+app.get('/api/multiplayer/rooms', (req, res) => {
+  const rooms = multiplayerService.getAllRooms();
+  res.json({ rooms });
+});
+
+app.get('/api/multiplayer/rooms/:code', (req, res) => {
+  const room = multiplayerService.getRoomInfo(req.params.code);
+  if (!room) {
+    return res.status(404).json({ error: 'Sala não encontrada' });
+  }
+  res.json({ room });
+});
 
 // Health check
 app.get('/api/health', async (req, res) => {
@@ -148,6 +163,9 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 Ambiente: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🧪 Test endpoint: http://localhost:${PORT}/api/test`);
+  
+  // Initialize multiplayer service
+  multiplayerService.initialize(server);
 });
 
 export default server;

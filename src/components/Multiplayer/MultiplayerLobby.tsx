@@ -1,31 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Users, Play, Copy, RefreshCw, Crown, Clock, Gamepad2 } from 'lucide-react';
-import { websocketService } from '../../services/websocketService';
-import { useI18n } from '../../hooks/useI18n';
-
-interface MultiplayerRoom {
-  id: string;
-  name: string;
-  players: Player[];
-  gameType: 'quiz' | 'memoria' | 'conexoes';
-  status: 'waiting' | 'playing' | 'finished';
-  maxPlayers: number;
-  createdAt: number;
-}
-
-interface Player {
-  id: string;
-  name: string;
-  avatar: string;
-  isReady: boolean;
-  isHost: boolean;
-  score: number;
-  lastActivity: number;
-}
+import React, { useState, useEffect } from 'react';
+import { Users, Settings, Share2, MessageCircle, Play, Crown, Check } from 'lucide-react';
+import multiplayerClient, { Room, Player, ChatMessage } from '../../services/multiplayerClient';
 
 interface MultiplayerLobbyProps {
-  onGameStart: (room: MultiplayerRoom) => void;
-  onClose: () => void;
+  onLeave: () => void;
 }
 
 export function MultiplayerLobby({ onGameStart, onClose }: MultiplayerLobbyProps) {
