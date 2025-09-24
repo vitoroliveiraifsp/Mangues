@@ -4,7 +4,12 @@ import jwt from 'jsonwebtoken';
 import { PubSub } from 'graphql-subscriptions';
 
 const pubsub = new PubSub();
-const JWT_SECRET = process.env.JWT_SECRET || 'mangues-quiz-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || (() => {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable is required in production');
+  }
+  return 'dev-jwt-secret-change-in-production';
+})();
 
 // In-memory storage for real-time features (in production, use Redis)
 const activeQuizzes = new Map();

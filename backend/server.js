@@ -157,7 +157,7 @@ process.on('SIGINT', () => {
 });
 
 // Inicialização do servidor
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', async () => {
   console.log(`🌿 Servidor do Mundo dos Mangues rodando na porta ${PORT}`);
   console.log(`🔗 Acesse: http://localhost:${PORT}`);
   console.log(`🌐 Ambiente: ${process.env.NODE_ENV || 'development'}`);
@@ -166,6 +166,39 @@ server.listen(PORT, '0.0.0.0', () => {
   
   // Initialize multiplayer service
   multiplayerService.initialize(server);
+  
+  try {
+    // Initialize GraphQL
+    const { ApolloServer } = await import('apollo-server-express');
+    const typeDefs = (await import('./src/graphql/schema.js')).default;
+    const resolvers = (await import('./src/graphql/resolvers.js')).default;
+    const jwt = await import('jsonwebtoken');
+    
+    const apolloServer = new ApolloServer({
+      typeDefs,
+      resolvers,
+      context: ({ req }) => {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        let user = null;
+        
+        if (token) {
+          try {
+            user = jwt.verify(token, process.env.JWT_SECRET || 'dev-jwt-secret');
+          } catch (error) {
+            console.warn('Invalid JWT token');
+          }
+        }
+        
+        return { user };
+      }
+    });
+    
+    await apolloServer.start();
+    apolloServer.applyMiddleware({ app, path: '/graphql' });
+    console.log(`🚀 GraphQL endpoint available at http://localhost:${PORT}/graphql`);
+  } catch (error) {
+    console.warn('⚠️ GraphQL not initialized:', error.message);
+  }
 });
 
 export default server;
