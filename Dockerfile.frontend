@@ -1,0 +1,26 @@
+# Dockerfile para o Frontend
+FROM node:18-alpine
+
+# Define diretório de trabalho
+WORKDIR /app
+
+# Copia arquivos de configuração
+COPY package.json ./
+COPY tsconfig*.json ./
+COPY vite.config.ts ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
+COPY eslint.config.js ./
+COPY index.html ./
+
+# Instala dependências
+RUN npm install
+
+# Copia o código fonte
+COPY src/ ./src/
+
+# Expõe a porta do frontend
+EXPOSE 5000
+
+# Comando para desenvolvimento (com hot reload)
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

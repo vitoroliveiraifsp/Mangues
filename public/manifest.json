@@ -1,0 +1,14 @@
+{
+  "name": "Mundo dos Mangues - Quiz Educativo",
+  "short_name": "Mangues Quiz", 
+  "description": "Aplicativo educativo interativo sobre ecossistemas de mangue com jogos e quiz offline",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait", 
+  "theme_color": "#10b981",
+  "background_color": "#ffffff",
+  "categories": ["education", "games"],
+  "lang": "pt-BR",
+  "scope": "/",
+  "icons": []
+}

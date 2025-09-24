@@ -1,0 +1,18 @@
+# Dockerfile para o Backend
+FROM node:18-alpine
+
+# Define diretório de trabalho
+WORKDIR /app
+
+# Copia package.json (se não existe, vamos usar apenas o principal)
+COPY package.json ./
+RUN npm install
+
+# Copia todo o código do backend
+COPY backend/ ./backend/
+
+# Expõe a porta do backend
+EXPOSE 3001
+
+# Comando para iniciar o servidor
+CMD ["node", "backend/server.js"]

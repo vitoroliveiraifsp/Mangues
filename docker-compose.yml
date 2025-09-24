@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: mangues-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - REPLIT_DEV_DOMAIN=http://frontend:5000
+    networks:
+      - mangues-network
+    restart: unless-stopped
+
+  # Frontend React
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: mangues-frontend
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://backend:3001
+    depends_on:
+      - backend
+    networks:
+      - mangues-network
+    volumes:
+      # Para hot reload em desenvolvimento
+      - ./src:/app/src
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+    restart: unless-stopped
+
+networks:
+  mangues-network:
+    driver: bridge
