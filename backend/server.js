@@ -58,6 +58,9 @@ import conexoesRoutes from './src/routes/conexoes.js';
 import quizRoutes from './src/routes/quiz.js';
 import pontuacoesRoutes from './src/routes/pontuacoes.js';
 import authRoutes from './src/routes/auth.js';
+import certificatesRoutes from './src/routes/certificates.js';
+import videosRoutes from './src/routes/videos.js';
+import gamificationRoutes from './src/routes/gamification.js';
 
 // Usar rotas
 app.use('/api', especiesRoutes);
@@ -67,6 +70,9 @@ app.use('/api', conexoesRoutes);
 app.use('/api', quizRoutes);
 app.use('/api', pontuacoesRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/certificates', certificatesRoutes);
+app.use('/api/videos', videosRoutes);
+app.use('/api/gamification', gamificationRoutes);
 
 // Multiplayer API routes
 app.get('/api/multiplayer/rooms', (req, res) => {

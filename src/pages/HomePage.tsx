@@ -27,6 +27,14 @@ const navigationCards = [
 		hoverColor: 'hover:from-orange-500 hover:to-orange-700',
 	},
 	{
+		path: '/videos',
+		title: 'Vídeos Educativos',
+		description: 'Assista vídeos incríveis sobre a vida nos mangues!',
+		icon: BookOpen,
+		color: 'from-teal-400 to-teal-600',
+		hoverColor: 'hover:from-teal-500 hover:to-teal-700',
+	},
+	{
 		path: '/jogo-da-memoria',
 		title: 'Jogo da Memória',
 		description: 'Teste seus conhecimentos com um jogo divertido!',
@@ -49,6 +57,14 @@ const navigationCards = [
 		icon: Gamepad2,
 		color: 'from-blue-400 to-blue-600',
 		hoverColor: 'hover:from-blue-500 hover:to-blue-700',
+	},
+	{
+		path: '/gamificacao',
+		title: 'Missões & Conquistas',
+		description: 'Acompanhe suas missões e desbloqueie conquistas!',
+		icon: Trophy,
+		color: 'from-yellow-400 to-yellow-600',
+		hoverColor: 'hover:from-yellow-500 hover:to-yellow-700',
 	},
 	{
 		path: '/ranking',

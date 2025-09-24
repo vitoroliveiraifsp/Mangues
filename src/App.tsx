@@ -15,6 +15,9 @@ import { QuizPage } from './pages/QuizPage';
 import { RankingPage } from './pages/RankingPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { MultiplayerPage } from './pages/MultiplayerPage';
+import { VideoLibraryPage } from './pages/VideoLibraryPage';
+import { GamificationPage } from './pages/GamificationPage';
+import { MetricsPanel } from './components/Dashboard/MetricsPanel';
 
 function App() {
   return (
@@ -23,6 +26,7 @@ function App() {
         <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
           <SyncStatus />
           <PWAInstallPrompt />
+          <MetricsPanel />
           <Navbar />
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -43,6 +47,9 @@ function App() {
             <Route path="/ranking" element={<RankingPage />} />
             <Route path="/multiplayer" element={<MultiplayerPage />} />
 
+            {/* Novas páginas v2.2 */}
+            <Route path="/videos" element={<VideoLibraryPage />} />
+            <Route path="/gamificacao" element={<GamificationPage />} />
             {/* Página Analytics (Admin only) */}
             <Route path="/analytics" element={<AnalyticsPage />} />
             {/* Página Contatos */}

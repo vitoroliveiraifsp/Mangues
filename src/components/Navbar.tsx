@@ -65,6 +65,20 @@ const gameItems = [
     description: 'Responda perguntas e teste seus conhecimentos!'
   },
   { 
+    path: '/videos', 
+    label: 'Vídeos Educativos', 
+    icon: BookOpen, 
+    highlight: 'green',
+    description: 'Assista vídeos educativos sobre os mangues!'
+  },
+  { 
+    path: '/gamificacao', 
+    label: 'Missões & Conquistas', 
+    icon: Trophy, 
+    highlight: 'yellow',
+    description: 'Acompanhe suas missões e conquistas!'
+  },
+  { 
     path: '/ranking', 
     label: 'Ranking', 
     icon: Trophy, 
